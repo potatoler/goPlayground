@@ -2,6 +2,7 @@ package poio
 
 import (
 	"bufio"
+	"flag"
 	"fmt"
 	"io"
 	"log"
@@ -126,4 +127,35 @@ func FileCopy(dst, src string) (written int64, err error) {
 	defer dstFile.Close()
 
 	return io.Copy(dstFile, srcFile)
+}
+
+// core cat reader
+func catCore(reader *bufio.Reader) {
+	for {
+		line, err := reader.ReadBytes('\n')
+		fmt.Fprintf(os.Stdout, "%s", line)
+		if err == io.EOF {
+			break
+		}
+	}
+}
+
+// Cat read a file and print line by line.
+// Add file name to tell which file you want cat to read.
+// With no file name cat will echo what the user typed
+func Cat() {
+	flag.Parse()
+	if flag.NArg() == 0 {
+		fmt.Printf("You have not appoint any file\nCat will echo what you type\nExit by typing ^D\n")
+		catCore(bufio.NewReader(os.Stdin))
+	}
+	for i := 0; i < flag.NArg(); i++ {
+		file, err := os.Open(flag.Arg(i))
+		if err != nil {
+			fmt.Fprintf(os.Stderr, "%s:error reading from %s: %s\n", os.Args[0], flag.Arg(i), err.Error())
+			continue
+		}
+		defer file.Close()
+		catCore(bufio.NewReader(file))
+	}
 }

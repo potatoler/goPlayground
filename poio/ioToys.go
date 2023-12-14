@@ -129,13 +129,22 @@ func FileCopy(dst, src string) (written int64, err error) {
 	return io.Copy(dstFile, srcFile)
 }
 
+var lineNumber = flag.Bool("i", false, "number each line")
+
 // core cat reader
 func catCore(reader *bufio.Reader) {
+	index := 1
 	for {
 		line, err := reader.ReadBytes('\n')
-		fmt.Fprintf(os.Stdout, "%s", line)
 		if err == io.EOF {
 			break
+		}
+		// fmt.Fprintf(os.Stdout, "%s", line)
+		if *lineNumber {
+			fmt.Fprintf(os.Stdout, "%5d %s", index, line)
+			index++
+		} else {
+			fmt.Fprintf(os.Stdout, "%s", line)
 		}
 	}
 }
@@ -147,6 +156,7 @@ func Cat() {
 	flag.Parse()
 	if flag.NArg() == 0 {
 		fmt.Printf("You have not appoint any file\nCat will echo what you type\nExit by typing ^D\n")
+		*lineNumber = false
 		catCore(bufio.NewReader(os.Stdin))
 	}
 	for i := 0; i < flag.NArg(); i++ {

@@ -169,3 +169,43 @@ func Cat() {
 		catCore(bufio.NewReader(file))
 	}
 }
+
+// core cat reader with buffer
+func bufferCatCore(file *os.File) {
+	const BUF = 512
+	var buffer [BUF]byte
+	for {
+		switch content, err := file.Read(buffer[:]); true {
+		case content < 0:
+			fmt.Fprintf(os.Stderr, "cat: error reading: %s\n", err.Error())
+			os.Exit(1)
+		case content == 0:
+			return
+		case content > 0:
+			written, err := os.Stdout.Write(buffer[:content])
+			if written != content {
+				fmt.Fprintf(os.Stderr, "cat: error writing: %s\n", err.Error())
+			}
+		}
+	}
+}
+
+// BufferCat read a file and print the whole file.
+// Add file name to tell which file you want cat to read.
+// With no file name cat will echo what the user typed
+func BufferCat() {
+	flag.Parse()
+	if flag.NArg() == 0 {
+		fmt.Printf("You have not appoint any file\nCat will echo what you type\nExit by typing ^D\n")
+		bufferCatCore(os.Stdin)
+	}
+	for i := 0; i < flag.NArg(); i++ {
+		file, err := os.Open(flag.Arg(i))
+		if file == nil {
+			fmt.Fprintf(os.Stderr, "cat: connot open %s: err %s\n", flag.Arg(i), err)
+			os.Exit(1)
+		}
+		bufferCatCore(file)
+		file.Close()
+	}
+}

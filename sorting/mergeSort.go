@@ -33,3 +33,42 @@ func MergeSort(array []int) []int {
 	rightPart := MergeSort(array[middle:])
 	return merge(leftPart, rightPart)
 }
+
+func MergeSortNonRecursive(array []int) []int {
+	step := 1
+	for step < len(array) {
+		left, mid := 0, step
+		for left < len(array) {
+			var temp []int
+			i, j := left, mid
+			for i < left+step && j < mid+step && j < len(array) {
+				if array[i] < array[j] {
+					temp = append(temp, array[i])
+					i++
+				} else {
+					temp = append(temp, array[j])
+					j++
+				}
+			}
+			for i < left+step && i < len(array) {
+				temp = append(temp, array[i])
+				i++
+			}
+			for j < mid+step && j < len(array) {
+				temp = append(temp, array[j])
+				j++
+			}
+			if i == len(array) {
+				copy(array[left:i], temp)
+			} else {
+				copy(array[left:j], temp)
+			}
+			left, mid = left+step*2, mid+step*2
+		}
+		if step > len(array)>>1 {
+			break
+		}
+		step <<= 1
+	}
+	return array
+}
